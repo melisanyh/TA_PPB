@@ -1,3 +1,5 @@
+FavoritesPage.js
+
 import React, { useState, useEffect } from 'react';
 import { 
     View, 
@@ -75,6 +77,11 @@ export default function FavoritesPage({ navigation }) {
     <View style={styles.recipeItem}>
       <TouchableOpacity
         style={styles.recipeContent}
+        onPress={() => {
+          navigation.navigate('Detail', {
+            recipe: item
+          });
+        }}
       >
         <Image
           source={{ uri: item.thumbnail_url || item.image_url }}

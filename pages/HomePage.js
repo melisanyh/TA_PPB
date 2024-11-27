@@ -6,22 +6,24 @@ import {
   StyleSheet,
   Image,
   TouchableOpacity,
-  ActivityIndicator
+  ActivityIndicator,
+  TextInput,
 } from 'react-native';
 import axios from 'axios';
 
 export default function HomePage({ navigation }) {
-  const [recipes, setRecipes] = useState([]); // Daftar resep
-  const [loading, setLoading] = useState(true); // Status loading
-  const [page, setPage] = useState(1); // Halaman saat ini untuk pagination
-  const [loadingMore, setLoadingMore] = useState(false); // Menandakan apakah lebih banyak data sedang dimuat
+  const [recipes, setRecipes] = useState([]);
+  const [filteredRecipes, setFilteredRecipes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState('');
 
-  // Fungsi untuk mengambil resep
   const fetchRecipes = async () => {
-    if (loadingMore) return; // Jangan lakukan request jika data sedang dimuat
+    if (loadingMore) return;
 
     try {
-      setLoadingMore(true); // Menandakan sedang mengambil data
+      setLoadingMore(true);
       const response = await axios.request({
         method: 'GET',
         url: 'https://tasty.p.rapidapi.com/recipes/list',
@@ -32,13 +34,15 @@ export default function HomePage({ navigation }) {
         },
         headers: {
           'x-rapidapi-key': 'd7267aca32msh5dd71fe5d271dd2p10cb11jsnc243b3b9172d',
-          'x-rapidapi-host': 'tasty.p.rapidapi.com'
-        }
+          'x-rapidapi-host': 'tasty.p.rapidapi.com',
+        },
       });
 
-      setRecipes(prevRecipes => [...prevRecipes, ...response.data.results]); // Menambahkan resep baru ke daftar yang sudah ada
-      setLoading(false); // Mengubah status loading menjadi false setelah data dimuat
-      setLoadingMore(false); // Menghentikan indikator pemuatan lebih banyak
+      const newRecipes = response.data.results;
+      setRecipes((prevRecipes) => [...prevRecipes, ...newRecipes]);
+      setFilteredRecipes((prevRecipes) => [...prevRecipes, ...newRecipes]);
+      setLoading(false);
+      setLoadingMore(false);
     } catch (error) {
       console.error('Error fetching recipes:', error);
       setLoading(false);
@@ -46,13 +50,21 @@ export default function HomePage({ navigation }) {
     }
   };
 
+  const handleSearch = (query) => {
+    setSearchQuery(query);
+    const filtered = recipes.filter((recipe) =>
+      recipe.name.toLowerCase().includes(query.toLowerCase())
+    );
+    setFilteredRecipes(filtered);
+  };
+
   const handleLoadMore = () => {
-    setPage(prevPage => prevPage + 1); // Menambah halaman untuk memuat lebih banyak data
+    setPage((prevPage) => prevPage + 1);
   };
 
   useEffect(() => {
-    fetchRecipes(); // Memuat resep pertama kali saat komponen pertama kali dimuat
-  }, [page]); // Setiap kali halaman berubah, muat resep baru
+    fetchRecipes();
+  }, [page]);
 
   const renderRecipeItem = ({ item, index }) => (
     <TouchableOpacity
@@ -74,19 +86,10 @@ export default function HomePage({ navigation }) {
         <Text style={styles.recipeDescription} numberOfLines={2}>
           {item.description || 'Tidak ada deskripsi'}
         </Text>
-        <View style={styles.recipeDetails}>
-          <Text style={styles.recipeDuration}>
-            🕒 {item.cook_time_minutes || '-'} menit
-          </Text>
-          <Text style={styles.recipeDifficulty}>
-            🍳 {item.nutrition ? 'Sedang' : 'Mudah'}
-          </Text>
-        </View>
       </View>
     </TouchableOpacity>
   );
 
-  // Jika masih loading data pertama kali
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -98,19 +101,27 @@ export default function HomePage({ navigation }) {
 
   return (
     <View style={styles.container}>
+      <TextInput
+        style={styles.searchInput}
+        placeholder="Cari resep..."
+        value={searchQuery}
+        onChangeText={handleSearch}
+      />
       <FlatList
-        data={recipes}
+        data={filteredRecipes}
         renderItem={renderRecipeItem}
         keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={styles.listContainer}
-        onEndReached={handleLoadMore} // Panggil fungsi saat mencapai bagian bawah
-        onEndReachedThreshold={0.5} // Memulai pemuatan lebih banyak saat 50% dari daftar terlihat
-        ListFooterComponent={loadingMore ? (
-          <View style={styles.loadingMoreContainer}>
-            <ActivityIndicator size="small" color="#4a90e2" />
-            <Text>Memuat lebih banyak...</Text>
-          </View>
-        ) : null}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={
+          loadingMore ? (
+            <View style={styles.loadingMoreContainer}>
+              <ActivityIndicator size="small" color="#4a90e2" />
+              <Text>Memuat lebih banyak...</Text>
+            </View>
+          ) : null
+        }
       />
     </View>
   );
@@ -120,6 +131,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
+  },
+  searchInput: {
+    margin: 10,
+    padding: 10,
+    borderWidth: 1,
+    borderRadius: 5,
+    borderColor: '#ccc',
+    backgroundColor: 'white',
   },
   listContainer: {
     padding: 10,
@@ -167,16 +186,6 @@ const styles = StyleSheet.create({
   recipeDescription: {
     color: 'gray',
     marginBottom: 10,
-  },
-  recipeDetails: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  recipeDuration: {
-    color: '#4a90e2',
-  },
-  recipeDifficulty: {
-    color: '#4a90e2',
   },
   loadingContainer: {
     flex: 1,
