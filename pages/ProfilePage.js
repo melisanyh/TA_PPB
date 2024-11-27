@@ -15,7 +15,7 @@ export default function ProfileScreen({ navigation }) {
         name: '',
         email: '',
         joinDate: '',
-        profileImage: 'https://via.placeholder.com/150'
+        profileImage: 'https://as1.ftcdn.net/v2/jpg/03/46/83/96/1000_F_346839683_6nAPzbhpSkIpb8pmAwufkC7c5eD7wYws.jpg'
     });
 
     // Fungsi untuk memuat data pengguna
@@ -31,7 +31,7 @@ export default function ProfileScreen({ navigation }) {
                 email: storedEmail || 'email@example.com',
                 name: storedName || 'Pengguna',
                 joinDate: joinDate,
-                profileImage: 'https://via.placeholder.com/150'
+                profileImage: 'https://as1.ftcdn.net/v2/jpg/03/46/83/96/1000_F_346839683_6nAPzbhpSkIpb8pmAwufkC7c5eD7wYws.jpg'
             });
         } catch (error) {
             console.error('Error loading user data', error);
@@ -52,6 +52,7 @@ export default function ProfileScreen({ navigation }) {
                         // Hapus status login
                         await AsyncStorage.removeItem('isLoggedIn');
                         await AsyncStorage.removeItem('userEmail');
+                        await AsyncStorage.removeItem('favoriteRecipes');
 
                         // Navigasi kembali ke halaman login
                         navigation.replace('Login');
@@ -82,14 +83,6 @@ export default function ProfileScreen({ navigation }) {
 
             </View>
 
-            {/* Tombol Logout */}
-            <TouchableOpacity
-                style={styles.logoutButton}
-                onPress={handleLogout}
-            >
-                <Text style={styles.logoutText}>Logout</Text>
-            </TouchableOpacity>
-
             {/* Informasi Aplikasi */}
             <View style={styles.aboutSection}>
                 <Text style={styles.aboutTitle}>Tentang Aplikasi</Text>
@@ -113,6 +106,13 @@ export default function ProfileScreen({ navigation }) {
                     © 2024 Cook It. All rights reserved.
                 </Text>
             </View>
+            {/* Tombol Logout */}
+            <TouchableOpacity
+                style={styles.logoutButton}
+                onPress={handleLogout}
+                >
+                <Text style={styles.logoutText}>Logout</Text>
+            </TouchableOpacity>
         </ScrollView>
     );
 }
@@ -130,10 +130,10 @@ const styles = StyleSheet.create({
         borderBottomColor: '#e0e0e0'
     },
     profileImage: {
-        width: 150,
-        height: 150,
-        borderRadius: 75,
-        marginBottom: 15
+        width: 170,
+        height: 170,
+        borderRadius: 80,
+        marginBottom: 5
     },
     name: {
         fontSize: 24,

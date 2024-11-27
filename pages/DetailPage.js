@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
-import {
-    View,
-    Text,
-    StyleSheet,
-    ScrollView,
-    Image,
-    TouchableOpacity,
-    Dimensions
+import React, { useState, useEffect } from 'react';
+import { 
+    View, 
+    Text, 
+    StyleSheet, 
+    ScrollView, 
+    Image, 
+    TouchableOpacity, 
+    Dimensions 
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -15,6 +15,21 @@ const { width } = Dimensions.get('window');
 export default function DetailPage({ route, navigation }) {
     const { recipe } = route.params;
     const [isFavorite, setIsFavorite] = useState(false);
+
+    useEffect(() => {
+        const checkFavoriteStatus = async () => {
+            try {
+                const favoritesString = await AsyncStorage.getItem('favoriteRecipes');
+                const favorites = favoritesString ? JSON.parse(favoritesString) : [];
+                const isAlreadyFavorite = favorites.some(fav => fav.id === recipe.id);
+                setIsFavorite(isAlreadyFavorite);
+            } catch (error) {
+                console.error('Error checking favorite status', error);
+            }
+        };
+
+        checkFavoriteStatus();
+    }, [recipe.id]);
 
     const toggleFavorite = async () => {
         try {
